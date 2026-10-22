@@ -87,6 +87,14 @@
   pointer-events: none;
 }
 
+.shockwave {
+  position: fixed;
+  border: 2px solid rgba(255, 209, 102, 0.9);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 209, 102, 0.25), transparent 70%);
+  pointer-events: none;
+}
+
 .points {
   position: fixed;
   color: #fff;

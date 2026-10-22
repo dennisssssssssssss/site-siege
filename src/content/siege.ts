@@ -1,10 +1,14 @@
 import type { SiegeState, TargetKind, Wallet } from '../shared/messages';
-import { coinsFor, loadWallet, updateWallet } from './armory';
+import { BLAST_RADIUS, coinsFor, loadWallet, updateWallet } from './armory';
 import { loadStats, updateStats } from './stats';
-import { HP, isVisible, targetAt } from './scanner';
+import { HP, type Target, allTargets, isVisible, targetAt } from './scanner';
 import overlayCss from './overlay.css?inline';
 
 type Styled = Element & ElementCSSInlineStyle;
+
+// What caused a kill. Blast kills don't set off more blasts, or one click would clear the page.
+type Source = 'click' | 'blast' | 'chain' | 'drone';
+type Point = { x: number; y: number };
 
 const COLORS: Record<TargetKind, string> = {
   image: '#ffb547',
@@ -31,6 +35,7 @@ let cursorStyle: HTMLStyleElement | null = null;
 let shieldLayer: HTMLElement | null = null;
 let shieldTimer: number | undefined;
 let hovered: { el: Element; kind: TargetKind } | null = null;
+let targetCache: { at: number; targets: Target[] } | null = null;
 
 export function getState(): SiegeState {
   return { active, destroyed: destroyed.size, score };
@@ -149,7 +154,38 @@ function onKeyDown(event: KeyboardEvent) {
   }
 }
 
-function destroy(el: Element, kind: TargetKind) {
+const centerOf = (rect: DOMRect): Point => ({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
+
+// Targets still standing on screen. The full page scan is cached for a moment because
+// blasts and chains ask for it many times in a row.
+function liveTargets(): Target[] {
+  if (!targetCache || performance.now() - targetCache.at > 600) {
+    targetCache = { at: performance.now(), targets: allTargets() };
+  }
+  return targetCache.targets.filter(({ el }) => {
+    if (destroyed.has(el as Styled) || !el.isConnected || !isVisible(el)) return false;
+    const rect = el.getBoundingClientRect();
+    return rect.bottom > 0 && rect.top < innerHeight && rect.right > 0 && rect.left < innerWidth;
+  });
+}
+
+function aftershock(center: Point, source: Source) {
+  if (source === 'blast') return;
+  const radius = BLAST_RADIUS[wallet.upgrades.blastRadius];
+  if (radius) blast(center, radius);
+}
+
+function blast(center: Point, radius: number) {
+  shockwave(center, radius);
+  for (const target of liveTargets()) {
+    if (distance(centerOf(target.el.getBoundingClientRect()), center) <= radius) {
+      destroy(target.el, target.kind, 'blast');
+    }
+  }
+}
+
+function destroy(el: Element, kind: TargetKind, source: Source = 'click') {
   const styled = el as Styled;
   const rect = el.getBoundingClientRect();
 
@@ -176,6 +212,7 @@ function destroy(el: Element, kind: TargetKind) {
   refreshShields();
   renderHud();
   explode(rect, kind);
+  aftershock(centerOf(rect), source);
 }
 
 function mountOverlay() {
@@ -291,6 +328,27 @@ function explode(rect: DOMRect, kind: TargetKind) {
 
   floatText(`+${HP[kind]}`, cx - 14, cy, '');
   floatText(`+${coinsFor(kind)}🪙`, cx + 22, cy, 'coin');
+}
+
+// A circle that grows to the blast radius, so you can see what the blast reached.
+function shockwave(center: Point, radius: number) {
+  if (!root) return;
+  const wave = document.createElement('div');
+  wave.className = 'shockwave';
+  Object.assign(wave.style, {
+    left: `${center.x - radius}px`,
+    top: `${center.y - radius}px`,
+    width: `${radius * 2}px`,
+    height: `${radius * 2}px`,
+  });
+  root.append(wave);
+  wave.animate(
+    [
+      { transform: 'scale(0.2)', opacity: 0.9 },
+      { transform: 'scale(1)', opacity: 0 },
+    ],
+    { duration: 420, easing: 'ease-out' },
+  ).onfinish = () => wave.remove();
 }
 
 function floatText(text: string, x: number, y: number, className: string) {

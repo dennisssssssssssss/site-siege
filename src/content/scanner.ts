@@ -84,7 +84,7 @@ export function isVisible(el: Element): boolean {
   return el.checkVisibility({ opacityProperty: true, visibilityProperty: true });
 }
 
-type Target = { el: Element; kind: TargetKind };
+export type Target = { el: Element; kind: TargetKind };
 
 // Walks up from an element to the nearest target. Plain text gives way to a link or button
 // just above it, so clicking the words of a link hits the link.
@@ -122,16 +122,21 @@ function textElements(): Set<Element> {
   return found;
 }
 
-export function scanPage(): LevelReport {
-  const counts: Record<TargetKind, number> = { image: 0, media: 0, link: 0, button: 0, text: 0, ad: 0 };
+// Every target on the page. An element counts only when it is the target you'd hit by
+// aiming at it, so the words inside a link aren't counted twice.
+export function allTargets(): Target[] {
   const elements = new Set([...document.querySelectorAll(CANDIDATES), ...textElements()]);
-
-  // Count an element only when it is the target you'd hit by aiming at it,
-  // so the words inside a link aren't counted twice.
+  const targets: Target[] = [];
   for (const el of elements) {
     const target = findTarget(el);
-    if (target?.el === el) counts[target.kind]++;
+    if (target?.el === el) targets.push(target);
   }
+  return targets;
+}
+
+export function scanPage(): LevelReport {
+  const counts: Record<TargetKind, number> = { image: 0, media: 0, link: 0, button: 0, text: 0, ad: 0 };
+  for (const { kind } of allTargets()) counts[kind]++;
 
   const totalHp = (Object.keys(counts) as TargetKind[]).reduce((sum, kind) => sum + counts[kind] * HP[kind], 0);
   return { host: location.host, counts, totalHp };
