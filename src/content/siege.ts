@@ -15,6 +15,10 @@ const CHAIN_DELAY = 120;
 const MAX_CHAIN_DEPTH = 4;
 const CHAIN_COLOR = '#ff8a3d';
 
+const DRONE_DURATION = 15_000;
+const DRONE_FIRE_RATE = 400;
+const DRONE_ORBIT = 46;
+
 const COLORS: Record<TargetKind, string> = {
   image: '#ffb547',
   media: '#b48cff',
@@ -41,6 +45,8 @@ let shieldLayer: HTMLElement | null = null;
 let shieldTimer: number | undefined;
 let hovered: { el: Element; kind: TargetKind } | null = null;
 let targetCache: { at: number; targets: Target[] } | null = null;
+let mouse: Point = { x: innerWidth / 2, y: innerHeight / 2 };
+let drone: { el: HTMLElement; until: number; position: Point; timer: number; frame: number } | null = null;
 
 export function getState(): SiegeState {
   return { active, destroyed: destroyed.size, score };
@@ -78,6 +84,7 @@ export function stopSiege() {
   window.removeEventListener('keydown', onKeyDown, true);
   for (const type of BLOCKED_EVENTS) window.removeEventListener(type, onPointer, true);
   window.clearInterval(shieldTimer);
+  stopDrone();
 
   host?.remove();
   cursorStyle?.remove();
@@ -118,6 +125,7 @@ function onPointer(event: Event) {
 }
 
 function onMouseMove(event: MouseEvent) {
+  mouse = { x: event.clientX, y: event.clientY };
   hovered = targetAt(event.clientX, event.clientY, host);
   updateHighlight();
 }
@@ -156,7 +164,67 @@ function onKeyDown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
     event.preventDefault();
     stopSiege();
+  } else if (event.key.toLowerCase() === 'q') {
+    // Swallow it either way, so the page's own Q shortcut doesn't fire mid-siege.
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    launchDrone();
   }
+}
+
+function launchDrone() {
+  if (drone || wallet.drones === 0 || !root) return;
+  wallet = { ...wallet, drones: wallet.drones - 1 };
+  updateWallet((saved) => ({ ...saved, drones: Math.max(0, saved.drones - 1) }));
+
+  const el = span('drone', '🤖');
+  root.append(el);
+  drone = {
+    el,
+    until: performance.now() + DRONE_DURATION,
+    position: { ...mouse },
+    timer: window.setInterval(droneShoot, DRONE_FIRE_RATE),
+    frame: requestAnimationFrame(droneOrbit),
+  };
+  renderHud();
+}
+
+function droneOrbit(now: number) {
+  if (!drone) return;
+  const angle = now / 300;
+  drone.position = { x: mouse.x + Math.cos(angle) * DRONE_ORBIT, y: mouse.y + Math.sin(angle) * DRONE_ORBIT };
+  drone.el.style.left = `${drone.position.x}px`;
+  drone.el.style.top = `${drone.position.y}px`;
+  drone.frame = requestAnimationFrame(droneOrbit);
+}
+
+function droneShoot() {
+  if (!drone) return;
+  if (performance.now() >= drone.until) {
+    stopDrone();
+    renderHud();
+    return;
+  }
+
+  let nearest: { target: Target; center: Point; distance: number } | null = null;
+  for (const target of liveTargets()) {
+    const center = centerOf(target.el.getBoundingClientRect());
+    const d = distance(center, drone.position);
+    if (!nearest || d < nearest.distance) nearest = { target, center, distance: d };
+  }
+  if (nearest) {
+    spark(drone.position, nearest.center, 'laser');
+    destroy(nearest.target.el, nearest.target.kind, 'drone');
+  }
+  renderHud();
+}
+
+function stopDrone() {
+  if (!drone) return;
+  window.clearInterval(drone.timer);
+  cancelAnimationFrame(drone.frame);
+  drone.el.remove();
+  drone = null;
 }
 
 const centerOf = (rect: DOMRect): Point => ({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
@@ -294,6 +362,9 @@ function renderHud() {
     span(score > 0 && score >= best ? 'record' : '', `Best ${best}`),
     span('', `Destroyed ${destroyed.size}`),
     span('coins', `🪙 ${wallet.coins.toLocaleString()}`),
+    drone
+      ? span('drone-status', `🤖 ${Math.ceil((drone.until - performance.now()) / 1000)}s`)
+      : span(wallet.drones ? 'drone-status' : 'hint', `Q Drone ×${wallet.drones}`),
     span('hint', 'ESC to exit'),
   );
 }
@@ -354,10 +425,10 @@ function explode(rect: DOMRect, kind: TargetKind, color: string) {
 }
 
 // A bolt from one kill to the next, so you can follow the chain across the page.
-function spark(from: Point, to: Point) {
+function spark(from: Point, to: Point, className = 'spark') {
   if (!root) return;
   const bolt = document.createElement('div');
-  bolt.className = 'spark';
+  bolt.className = className;
   Object.assign(bolt.style, {
     left: `${from.x}px`,
     top: `${from.y}px`,

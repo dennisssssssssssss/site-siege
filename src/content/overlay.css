@@ -105,6 +105,29 @@
   pointer-events: none;
 }
 
+.laser {
+  position: fixed;
+  height: 2px;
+  border-radius: 2px;
+  background: #5ef2ff;
+  box-shadow: 0 0 8px #5ef2ff;
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+
+.drone {
+  position: fixed;
+  font-size: 22px;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 6px #5ef2ff);
+  pointer-events: none;
+}
+
+.hud .drone-status {
+  color: #5ef2ff;
+}
+
 .points {
   position: fixed;
   color: #fff;
