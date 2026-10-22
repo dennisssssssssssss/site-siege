@@ -9,7 +9,11 @@ Built by **Solo Queue** as an [ASSIST Academy](https://learning.assist.ro/course
 ## Status
 
 - [x] Stage 0: project setup, popup connected to the page
-- [ ] Base: level report, destroy on click, restore, per-site stats
+- [ ] Base
+  - [x] Level report: images, links, buttons, ads and total HP
+  - [x] Siege mode: highlight on hover, destroy on click, score HUD
+  - [x] Restore the page
+  - [ ] Stats saved per website
 - [ ] Plus: drivable vehicle, shooting, collisions, scoring
 - [ ] Signature: XP, levels, vehicle classes, power-ups
 

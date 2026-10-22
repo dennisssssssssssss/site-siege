@@ -19,8 +19,26 @@
 
       <p id="status" class="status status--pending">Connecting to page…</p>
 
-      <button id="scan" type="button" disabled>Scan level</button>
-      <p class="hint">Level scan arrives in Base.</p>
+      <section id="report" class="report" hidden>
+        <div class="report__header">
+          <span class="label">Level report</span>
+          <strong id="total-hp" class="total-hp">0 HP</strong>
+        </div>
+        <div class="tiles">
+          <div class="tile tile--image"><strong id="count-image">0</strong><span>Images</span></div>
+          <div class="tile tile--link"><strong id="count-link">0</strong><span>Links</span></div>
+          <div class="tile tile--button"><strong id="count-button">0</strong><span>Buttons</span></div>
+          <div class="tile tile--ad"><strong id="count-ad">0</strong><span>Ads</span></div>
+        </div>
+      </section>
+
+      <p id="progress" class="progress" hidden></p>
+
+      <button id="siege" type="button" disabled>Start siege</button>
+      <div class="secondary">
+        <button id="scan" type="button" class="ghost" disabled>Rescan</button>
+        <button id="restore" type="button" class="ghost" disabled>Restore page</button>
+      </div>
     </main>
     <script type="module" src="./popup.ts"></script>
   </body>

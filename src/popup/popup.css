@@ -13,6 +13,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   width: 280px;
@@ -80,6 +84,86 @@ h1 {
   color: var(--warn);
 }
 
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.report__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.total-hp {
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--kind);
+  border-radius: 6px;
+  background: var(--panel);
+}
+
+.tile strong {
+  font-size: 18px;
+}
+
+.tile span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.tile--image {
+  --kind: #ffb547;
+}
+
+.tile--link {
+  --kind: #4da3ff;
+}
+
+.tile--button {
+  --kind: #3ddc97;
+}
+
+.tile--ad {
+  --kind: #ff3b5c;
+}
+
+.progress {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  text-align: center;
+}
+
+.secondary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: -4px;
+}
+
+button.ghost {
+  padding: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 11px;
+}
+
 button {
   padding: 10px;
   border: 0;
@@ -95,11 +179,4 @@ button {
 button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
-}
-
-.hint {
-  margin: -4px 0 0;
-  color: var(--muted);
-  font-size: 11px;
-  text-align: center;
 }

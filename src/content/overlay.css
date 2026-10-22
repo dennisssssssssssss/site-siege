@@ -1,0 +1,77 @@
+:host {
+  all: initial;
+}
+
+.highlight {
+  position: fixed;
+  display: none;
+  border: 2px solid var(--color);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--color) 14%, transparent);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--color) 60%, transparent);
+  pointer-events: none;
+}
+
+.tag {
+  position: absolute;
+  top: -24px;
+  left: -2px;
+  padding: 4px 7px;
+  border-radius: 4px;
+  background: var(--color);
+  color: #0d0f14;
+  font: 800 11px/1 system-ui, 'Segoe UI', sans-serif;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.hud {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 10px 16px;
+  transform: translateX(-50%);
+  border: 1px solid #262c38;
+  border-radius: 999px;
+  background: rgba(13, 15, 20, 0.92);
+  color: #e8ecf3;
+  font: 600 13px/1 system-ui, 'Segoe UI', sans-serif;
+  pointer-events: none;
+}
+
+.hud .title {
+  color: #ff3b5c;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.hud .hint {
+  color: #8a93a6;
+  font-weight: 500;
+}
+
+.particle {
+  position: fixed;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  pointer-events: none;
+}
+
+.ring {
+  position: fixed;
+  border: 3px solid;
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+.points {
+  position: fixed;
+  color: #fff;
+  font: 900 18px/1 system-ui, 'Segoe UI', sans-serif;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
