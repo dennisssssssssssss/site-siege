@@ -10,7 +10,7 @@ Built by **Solo Queue** as an [ASSIST Academy](https://learning.assist.ro/course
 
 - [x] Stage 0: project setup, popup connected to the page
 - [x] Base
-  - [x] Level report: images, links, buttons, ads and total HP
+  - [x] Level report: images, media, links, buttons, text, ads and total HP
   - [x] Siege mode: highlight on hover, destroy on click, score HUD
   - [x] Restore the page
   - [x] Stats saved per website (best score, total destroyed, sieges)

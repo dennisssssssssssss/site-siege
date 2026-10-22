@@ -103,7 +103,7 @@ h1 {
 
 .tiles {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
 }
 
@@ -118,7 +118,7 @@ h1 {
 }
 
 .tile strong {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .tile span {
@@ -130,8 +130,16 @@ h1 {
   --kind: #ffb547;
 }
 
+.tile--media {
+  --kind: #b48cff;
+}
+
 .tile--link {
   --kind: #4da3ff;
+}
+
+.tile--text {
+  --kind: #c3c9d6;
 }
 
 .tile--button {

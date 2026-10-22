@@ -2,6 +2,12 @@
   all: initial;
 }
 
+.shield {
+  position: fixed;
+  cursor: crosshair;
+  pointer-events: auto;
+}
+
 .highlight {
   position: fixed;
   display: none;

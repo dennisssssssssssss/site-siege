@@ -1,14 +1,16 @@
 import type { SiegeState, TargetKind } from '../shared/messages';
 import { loadStats, updateStats } from './stats';
-import { HP, findTarget } from './scanner';
+import { HP, isVisible, targetAt } from './scanner';
 import overlayCss from './overlay.css?inline';
 
 type Styled = Element & ElementCSSInlineStyle;
 
 const COLORS: Record<TargetKind, string> = {
   image: '#ffb547',
+  media: '#b48cff',
   link: '#4da3ff',
   button: '#3ddc97',
+  text: '#c3c9d6',
   ad: '#ff3b5c',
 };
 
@@ -23,6 +25,8 @@ let root: ShadowRoot | null = null;
 let highlight: HTMLElement | null = null;
 let hud: HTMLElement | null = null;
 let cursorStyle: HTMLStyleElement | null = null;
+let shieldLayer: HTMLElement | null = null;
+let shieldTimer: number | undefined;
 let hovered: { el: Element; kind: TargetKind } | null = null;
 
 export function getState(): SiegeState {
@@ -41,9 +45,13 @@ export function startSiege() {
   });
 
   window.addEventListener('mousemove', onMouseMove, true);
-  window.addEventListener('scroll', updateHighlight, true);
+  window.addEventListener('scroll', onScroll, true);
   window.addEventListener('keydown', onKeyDown, true);
   for (const type of BLOCKED_EVENTS) window.addEventListener(type, onPointer, true);
+
+  refreshShields();
+  // Iframes come and go (lazy embeds, live chat), so keep the shields in sync.
+  shieldTimer = window.setInterval(refreshShields, 500);
 }
 
 export function stopSiege() {
@@ -52,13 +60,14 @@ export function stopSiege() {
   hovered = null;
 
   window.removeEventListener('mousemove', onMouseMove, true);
-  window.removeEventListener('scroll', updateHighlight, true);
+  window.removeEventListener('scroll', onScroll, true);
   window.removeEventListener('keydown', onKeyDown, true);
   for (const type of BLOCKED_EVENTS) window.removeEventListener(type, onPointer, true);
+  window.clearInterval(shieldTimer);
 
   host?.remove();
   cursorStyle?.remove();
-  host = root = highlight = hud = cursorStyle = null;
+  host = root = highlight = hud = cursorStyle = shieldLayer = null;
 }
 
 export function restorePage(): number {
@@ -77,7 +86,8 @@ export function restorePage(): number {
 const BLOCKED_EVENTS = ['pointerdown', 'mousedown', 'pointerup', 'mouseup', 'click', 'auxclick'] as const;
 
 function onPointer(event: Event) {
-  const target = findTarget(event.target as Element);
+  const { clientX, clientY } = event as MouseEvent;
+  const target = targetAt(clientX, clientY, host);
   if (!target) return;
 
   event.preventDefault();
@@ -86,8 +96,38 @@ function onPointer(event: Event) {
 }
 
 function onMouseMove(event: MouseEvent) {
-  hovered = findTarget(event.target as Element);
+  hovered = targetAt(event.clientX, event.clientY, host);
   updateHighlight();
+}
+
+function onScroll() {
+  updateHighlight();
+  refreshShields();
+}
+
+// Mouse events inside an iframe never reach this page, so during a siege each visible
+// iframe gets an invisible shield on top that catches the hover and the shot instead.
+function refreshShields() {
+  if (!shieldLayer) return;
+  const shields: HTMLElement[] = [];
+
+  for (const frame of document.querySelectorAll('iframe')) {
+    if (!isVisible(frame)) continue;
+    const rect = frame.getBoundingClientRect();
+    if (rect.bottom < 0 || rect.top > innerHeight || rect.right < 0 || rect.left > innerWidth) continue;
+
+    const shield = document.createElement('div');
+    shield.className = 'shield';
+    Object.assign(shield.style, {
+      left: `${rect.left}px`,
+      top: `${rect.top}px`,
+      width: `${rect.width}px`,
+      height: `${rect.height}px`,
+    });
+    shield.addEventListener('wheel', (e) => window.scrollBy(e.deltaX, e.deltaY), { passive: true });
+    shields.push(shield);
+  }
+  shieldLayer.replaceChildren(...shields);
 }
 
 function onKeyDown(event: KeyboardEvent) {
@@ -117,6 +157,7 @@ function destroy(el: Element, kind: TargetKind) {
 
   hovered = null;
   updateHighlight();
+  refreshShields();
   renderHud();
   explode(rect, kind);
 }
@@ -137,7 +178,9 @@ function mountOverlay() {
   hud = document.createElement('div');
   hud.className = 'hud';
 
-  root.append(style, highlight, hud);
+  shieldLayer = document.createElement('div');
+
+  root.append(style, shieldLayer, highlight, hud);
   document.documentElement.append(host);
 
   cursorStyle = document.createElement('style');

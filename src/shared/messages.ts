@@ -1,6 +1,6 @@
 // Messages exchanged between the popup, the content script and the service worker.
 
-export type TargetKind = 'image' | 'link' | 'button' | 'ad';
+export type TargetKind = 'image' | 'media' | 'link' | 'button' | 'text' | 'ad';
 
 export type LevelReport = {
   host: string;
