@@ -39,8 +39,9 @@ function renderState() {
 }
 
 async function renderRecord() {
-  const stats = await send<SiteStats>({ type: 'GET_STATS' });
-  if (stats.sieges === 0) return;
+  // An older content script (page not reloaded after an update) doesn't know GET_STATS.
+  const stats = await send<SiteStats>({ type: 'GET_STATS' }).catch(() => null);
+  if (!stats || stats.sieges === 0) return;
   $('#best-score').textContent = stats.bestScore.toLocaleString();
   $('#total-destroyed').textContent = stats.destroyed.toLocaleString();
   $('#sieges').textContent = String(stats.sieges);
