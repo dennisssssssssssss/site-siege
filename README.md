@@ -14,6 +14,10 @@ Built by **Solo Queue** as an [ASSIST Academy](https://learning.assist.ro/course
   - [x] Siege mode: highlight on hover, destroy on click, score HUD
   - [x] Restore the page
   - [x] Stats saved per website (best score, total destroyed, sieges)
+- [x] Armory: coins from every kill, one wallet across all sites
+  - [x] 💥 Blast Radius: kills take nearby stuff down too
+  - [x] ⛓️ Chain Reaction: kills can jump to their neighbours
+  - [x] 🤖 Drone: press Q and it hunts targets for 15s
 - [ ] Plus: drivable vehicle, shooting, collisions, scoring
 - [ ] Signature: XP, levels, vehicle classes, power-ups
 

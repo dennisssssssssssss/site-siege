@@ -45,6 +45,7 @@
   background: rgba(13, 15, 20, 0.92);
   color: #e8ecf3;
   font: 600 13px/1 system-ui, 'Segoe UI', sans-serif;
+  white-space: nowrap;
   pointer-events: none;
 }
 
