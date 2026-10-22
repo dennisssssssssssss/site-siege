@@ -19,36 +19,52 @@
 
       <p id="status" class="status status--pending">Connecting to page…</p>
 
-      <section id="report" class="report" hidden>
-        <div class="report__header">
-          <span class="label">Level report</span>
-          <strong id="total-hp" class="total-hp">0 HP</strong>
-        </div>
-        <div class="tiles">
-          <div class="tile tile--image"><strong id="count-image">0</strong><span>Images</span></div>
-          <div class="tile tile--media"><strong id="count-media">0</strong><span>Media</span></div>
-          <div class="tile tile--link"><strong id="count-link">0</strong><span>Links</span></div>
-          <div class="tile tile--button"><strong id="count-button">0</strong><span>Buttons</span></div>
-          <div class="tile tile--text"><strong id="count-text">0</strong><span>Text</span></div>
-          <div class="tile tile--ad"><strong id="count-ad">0</strong><span>Ads</span></div>
-        </div>
-      </section>
+      <nav id="tabs" class="tabs" hidden>
+        <button type="button" class="tab tab--active" data-tab="level">Level</button>
+        <button type="button" class="tab" data-tab="armory">Armory <span id="tab-coins" class="tab__coins"></span></button>
+      </nav>
 
-      <section id="record" class="record" hidden>
-        <span class="label">Your record here</span>
-        <div class="record__row">
-          <div><strong id="best-score">0</strong><span>best score</span></div>
-          <div><strong id="total-destroyed">0</strong><span>destroyed</span></div>
-          <div><strong id="sieges">0</strong><span>sieges</span></div>
+      <div id="panel-level" class="panel">
+        <section id="report" class="report" hidden>
+          <div class="report__header">
+            <span class="label">Level report</span>
+            <strong id="total-hp" class="total-hp">0 HP</strong>
+          </div>
+          <div class="tiles">
+            <div class="tile tile--image"><strong id="count-image">0</strong><span>Images</span></div>
+            <div class="tile tile--media"><strong id="count-media">0</strong><span>Media</span></div>
+            <div class="tile tile--link"><strong id="count-link">0</strong><span>Links</span></div>
+            <div class="tile tile--button"><strong id="count-button">0</strong><span>Buttons</span></div>
+            <div class="tile tile--text"><strong id="count-text">0</strong><span>Text</span></div>
+            <div class="tile tile--ad"><strong id="count-ad">0</strong><span>Ads</span></div>
+          </div>
+        </section>
+
+        <section id="record" class="record" hidden>
+          <span class="label">Your record here</span>
+          <div class="record__row">
+            <div><strong id="best-score">0</strong><span>best score</span></div>
+            <div><strong id="total-destroyed">0</strong><span>destroyed</span></div>
+            <div><strong id="sieges">0</strong><span>sieges</span></div>
+          </div>
+        </section>
+
+        <p id="progress" class="progress" hidden></p>
+
+        <button id="siege" type="button" disabled>Start siege</button>
+        <div class="secondary">
+          <button id="scan" type="button" class="ghost" disabled>Rescan</button>
+          <button id="restore" type="button" class="ghost" disabled>Restore page</button>
         </div>
-      </section>
+      </div>
 
-      <p id="progress" class="progress" hidden></p>
-
-      <button id="siege" type="button" disabled>Start siege</button>
-      <div class="secondary">
-        <button id="scan" type="button" class="ghost" disabled>Rescan</button>
-        <button id="restore" type="button" class="ghost" disabled>Restore page</button>
+      <div id="panel-armory" class="panel" hidden>
+        <section class="balance">
+          <span class="label">Your coins</span>
+          <strong id="coins">🪙 0</strong>
+        </section>
+        <ul id="armory-items" class="items"></ul>
+        <p class="footnote">Coins drop from every kill, on every site.</p>
       </div>
     </main>
     <script type="module" src="./popup.ts"></script>

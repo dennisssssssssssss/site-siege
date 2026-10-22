@@ -84,6 +84,129 @@ h1 {
   color: var(--warn);
 }
 
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.tabs button.tab {
+  padding: 7px;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.tabs button.tab--active {
+  background: var(--border);
+  color: var(--text);
+}
+
+.tab__coins {
+  margin-left: 4px;
+  color: #ffd166;
+  letter-spacing: 0;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.balance {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+#coins {
+  color: #ffd166;
+  font-size: 18px;
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.item__head {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.item__icon {
+  font-size: 16px;
+}
+
+.item__name {
+  flex: 1;
+  font-size: 13px;
+}
+
+.pips {
+  display: flex;
+  gap: 3px;
+}
+
+.pip {
+  width: 10px;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--border);
+}
+
+.pip--on {
+  background: var(--accent);
+}
+
+.item__count {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.item__desc,
+.item__next,
+.footnote {
+  margin: 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.item__desc {
+  color: var(--text);
+}
+
+.footnote {
+  text-align: center;
+}
+
+button.buy {
+  margin-top: 4px;
+  padding: 7px;
+  background: #ffd166;
+  color: #0d0f14;
+  font-size: 11px;
+}
+
 .report {
   display: flex;
   flex-direction: column;
