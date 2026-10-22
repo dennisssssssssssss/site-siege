@@ -1,6 +1,7 @@
 import type { PingResponse, Request } from '../shared/messages';
 import { scanPage } from './scanner';
 import { getState, restorePage, startSiege, stopSiege } from './siege';
+import { loadStats } from './stats';
 
 chrome.runtime.onMessage.addListener((message: Request, _sender, sendResponse) => {
   switch (message.type) {
@@ -15,6 +16,10 @@ chrome.runtime.onMessage.addListener((message: Request, _sender, sendResponse) =
     case 'GET_STATE':
       sendResponse(getState());
       break;
+    case 'GET_STATS':
+      loadStats(location.host).then(sendResponse);
+      // Keeps the channel open until the async response is sent.
+      return true;
     case 'SIEGE_START':
       startSiege();
       sendResponse(getState());

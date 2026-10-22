@@ -48,6 +48,10 @@
   letter-spacing: 0.12em;
 }
 
+.hud .record {
+  color: #ffb547;
+}
+
 .hud .hint {
   color: #8a93a6;
   font-weight: 500;

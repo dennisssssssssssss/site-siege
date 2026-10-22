@@ -1,4 +1,5 @@
 import type { SiegeState, TargetKind } from '../shared/messages';
+import { loadStats, updateStats } from './stats';
 import { HP, findTarget } from './scanner';
 import overlayCss from './overlay.css?inline';
 
@@ -16,6 +17,7 @@ const destroyed = new Map<Styled, { value: string; priority: string }>();
 
 let active = false;
 let score = 0;
+let best = 0;
 let host: HTMLElement | null = null;
 let root: ShadowRoot | null = null;
 let highlight: HTMLElement | null = null;
@@ -31,6 +33,12 @@ export function startSiege() {
   if (active) return;
   active = true;
   mountOverlay();
+
+  updateStats(location.host, (stats) => ({ ...stats, sieges: stats.sieges + 1, lastPlayed: Date.now() }));
+  loadStats(location.host).then((stats) => {
+    best = Math.max(best, stats.bestScore);
+    renderHud();
+  });
 
   window.addEventListener('mousemove', onMouseMove, true);
   window.addEventListener('scroll', updateHighlight, true);
@@ -100,6 +108,13 @@ function destroy(el: Element, kind: TargetKind) {
   styled.style.setProperty('visibility', 'hidden', 'important');
 
   score += HP[kind];
+  best = Math.max(best, score);
+  updateStats(location.host, (stats) => ({
+    ...stats,
+    destroyed: stats.destroyed + 1,
+    bestScore: Math.max(stats.bestScore, score),
+  }));
+
   hovered = null;
   updateHighlight();
   renderHud();
@@ -156,6 +171,7 @@ function renderHud() {
   hud.replaceChildren(
     span('title', 'SITE SIEGE'),
     span('', `Score ${score}`),
+    span(score > 0 && score >= best ? 'record' : '', `Best ${best}`),
     span('', `Destroyed ${destroyed.size}`),
     span('hint', 'ESC to exit'),
   );

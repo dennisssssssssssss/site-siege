@@ -14,10 +14,18 @@ export type SiegeState = {
   score: number;
 };
 
+export type SiteStats = {
+  sieges: number;
+  destroyed: number;
+  bestScore: number;
+  lastPlayed: number | null;
+};
+
 export type Request =
   | { type: 'PING' }
   | { type: 'SCAN' }
   | { type: 'GET_STATE' }
+  | { type: 'GET_STATS' }
   | { type: 'SIEGE_START' }
   | { type: 'SIEGE_STOP' }
   | { type: 'RESTORE' };

@@ -142,6 +142,36 @@ h1 {
   --kind: #ff3b5c;
 }
 
+.record {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.record__row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  text-align: center;
+}
+
+.record__row div {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 4px;
+  border-radius: 6px;
+  background: var(--panel);
+}
+
+.record__row strong {
+  font-size: 15px;
+}
+
+.record__row span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
 .progress {
   margin: 0;
   color: var(--text);

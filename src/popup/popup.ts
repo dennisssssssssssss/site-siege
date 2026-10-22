@@ -1,4 +1,4 @@
-import type { LevelReport, PingResponse, Request, SiegeState, TargetKind } from '../shared/messages';
+import type { LevelReport, PingResponse, Request, SiegeState, SiteStats, TargetKind } from '../shared/messages';
 
 const $ = <T extends HTMLElement>(selector: string) => document.querySelector<T>(selector)!;
 
@@ -38,6 +38,15 @@ function renderState() {
   progressEl.textContent = `Destroyed ${state.destroyed} · Score ${state.score}`;
 }
 
+async function renderRecord() {
+  const stats = await send<SiteStats>({ type: 'GET_STATS' });
+  if (stats.sieges === 0) return;
+  $('#best-score').textContent = stats.bestScore.toLocaleString();
+  $('#total-destroyed').textContent = stats.destroyed.toLocaleString();
+  $('#sieges').textContent = String(stats.sieges);
+  $('#record').hidden = false;
+}
+
 async function scan() {
   renderReport(await send<LevelReport>({ type: 'SCAN' }));
 }
@@ -54,7 +63,7 @@ async function connect() {
     const ping = await send<PingResponse>({ type: 'PING' });
     hostEl.textContent = ping.host;
     state = await send<SiegeState>({ type: 'GET_STATE' });
-    await scan();
+    await Promise.all([scan(), renderRecord()]);
   } catch {
     // Content scripts don't run on chrome:// pages, the Web Store, or tabs opened before install.
     setStatus('Can\'t reach this page. Reload it, or try a normal website.', 'warn');
