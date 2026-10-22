@@ -1,4 +1,5 @@
-import type { SiegeState, TargetKind } from '../shared/messages';
+import type { SiegeState, TargetKind, Wallet } from '../shared/messages';
+import { coinsFor, loadWallet, updateWallet } from './armory';
 import { loadStats, updateStats } from './stats';
 import { HP, isVisible, targetAt } from './scanner';
 import overlayCss from './overlay.css?inline';
@@ -20,6 +21,8 @@ const destroyed = new Map<Styled, { value: string; priority: string }>();
 let active = false;
 let score = 0;
 let best = 0;
+// Local copy of the wallet so the HUD updates instantly; every change is also saved.
+let wallet: Wallet = { coins: 0, upgrades: { blastRadius: 0, chainReaction: 0 }, drones: 0 };
 let host: HTMLElement | null = null;
 let root: ShadowRoot | null = null;
 let highlight: HTMLElement | null = null;
@@ -43,6 +46,7 @@ export function startSiege() {
     best = Math.max(best, stats.bestScore);
     renderHud();
   });
+  reloadWallet();
 
   window.addEventListener('mousemove', onMouseMove, true);
   window.addEventListener('scroll', onScroll, true);
@@ -68,6 +72,14 @@ export function stopSiege() {
   host?.remove();
   cursorStyle?.remove();
   host = root = highlight = hud = cursorStyle = shieldLayer = null;
+}
+
+// Called after a purchase in the popup, so a running siege sees the new upgrades.
+export function reloadWallet() {
+  loadWallet().then((saved) => {
+    wallet = saved;
+    renderHud();
+  });
 }
 
 export function restorePage(): number {
@@ -155,6 +167,10 @@ function destroy(el: Element, kind: TargetKind) {
     bestScore: Math.max(stats.bestScore, score),
   }));
 
+  const coins = coinsFor(kind);
+  wallet = { ...wallet, coins: wallet.coins + coins };
+  updateWallet((saved) => ({ ...saved, coins: saved.coins + coins }));
+
   hovered = null;
   updateHighlight();
   refreshShields();
@@ -216,6 +232,7 @@ function renderHud() {
     span('', `Score ${score}`),
     span(score > 0 && score >= best ? 'record' : '', `Best ${best}`),
     span('', `Destroyed ${destroyed.size}`),
+    span('coins', `🪙 ${wallet.coins.toLocaleString()}`),
     span('hint', 'ESC to exit'),
   );
 }
@@ -272,14 +289,20 @@ function explode(rect: DOMRect, kind: TargetKind) {
     ).onfinish = () => particle.remove();
   }
 
-  const points = span('points', `+${HP[kind]}`);
-  Object.assign(points.style, { left: `${cx}px`, top: `${cy}px` });
-  root.append(points);
-  points.animate(
+  floatText(`+${HP[kind]}`, cx - 14, cy, '');
+  floatText(`+${coinsFor(kind)}🪙`, cx + 22, cy, 'coin');
+}
+
+function floatText(text: string, x: number, y: number, className: string) {
+  if (!root) return;
+  const el = span(`points ${className}`, text);
+  Object.assign(el.style, { left: `${x}px`, top: `${y}px` });
+  root.append(el);
+  el.animate(
     [
       { transform: 'translate(-50%, -50%)', opacity: 1 },
       { transform: 'translate(-50%, -260%)', opacity: 0 },
     ],
     { duration: 800, easing: 'ease-out' },
-  ).onfinish = () => points.remove();
+  ).onfinish = () => el.remove();
 }

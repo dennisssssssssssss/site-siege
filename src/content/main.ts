@@ -1,6 +1,7 @@
-import type { PingResponse, Request } from '../shared/messages';
+import type { BuyResponse, PingResponse, Request } from '../shared/messages';
+import { armoryView, buy, loadWallet } from './armory';
 import { scanPage } from './scanner';
-import { getState, restorePage, startSiege, stopSiege } from './siege';
+import { getState, reloadWallet, restorePage, startSiege, stopSiege } from './siege';
 import { loadStats } from './stats';
 
 chrome.runtime.onMessage.addListener((message: Request, _sender, sendResponse) => {
@@ -19,6 +20,16 @@ chrome.runtime.onMessage.addListener((message: Request, _sender, sendResponse) =
     case 'GET_STATS':
       loadStats(location.host).then(sendResponse);
       // Keeps the channel open until the async response is sent.
+      return true;
+    case 'GET_WALLET':
+      loadWallet().then((wallet) => sendResponse(armoryView(wallet)));
+      return true;
+    case 'BUY':
+      buy(message.item).then(({ ok, wallet }) => {
+        reloadWallet();
+        const response: BuyResponse = { ok, armory: armoryView(wallet) };
+        sendResponse(response);
+      });
       return true;
     case 'SIEGE_START':
       startSiege();
