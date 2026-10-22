@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Site Siege</title>
+    <link rel="stylesheet" href="./popup.css" />
+  </head>
+  <body>
+    <main class="popup">
+      <header>
+        <h1>SITE SIEGE</h1>
+        <p class="tagline">by Solo Queue</p>
+      </header>
+
+      <section class="target">
+        <span class="label">Target</span>
+        <strong id="target-host">—</strong>
+      </section>
+
+      <p id="status" class="status status--pending">Connecting to page…</p>
+
+      <button id="scan" type="button" disabled>Scan level</button>
+      <p class="hint">Level scan arrives in Base.</p>
+    </main>
+    <script type="module" src="./popup.ts"></script>
+  </body>
+</html>
