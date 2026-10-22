@@ -95,6 +95,16 @@
   pointer-events: none;
 }
 
+.spark {
+  position: fixed;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #ffd166, #ff8a3d);
+  box-shadow: 0 0 10px #ff8a3d;
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+
 .points {
   position: fixed;
   color: #fff;

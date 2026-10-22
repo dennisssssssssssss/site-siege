@@ -1,5 +1,5 @@
 import type { SiegeState, TargetKind, Wallet } from '../shared/messages';
-import { BLAST_RADIUS, coinsFor, loadWallet, updateWallet } from './armory';
+import { BLAST_RADIUS, CHAIN_CHANCE, coinsFor, loadWallet, updateWallet } from './armory';
 import { loadStats, updateStats } from './stats';
 import { HP, type Target, allTargets, isVisible, targetAt } from './scanner';
 import overlayCss from './overlay.css?inline';
@@ -9,6 +9,11 @@ type Styled = Element & ElementCSSInlineStyle;
 // What caused a kill. Blast kills don't set off more blasts, or one click would clear the page.
 type Source = 'click' | 'blast' | 'chain' | 'drone';
 type Point = { x: number; y: number };
+
+const CHAIN_RANGE = 120;
+const CHAIN_DELAY = 120;
+const MAX_CHAIN_DEPTH = 4;
+const CHAIN_COLOR = '#ff8a3d';
 
 const COLORS: Record<TargetKind, string> = {
   image: '#ffb547',
@@ -170,10 +175,29 @@ function liveTargets(): Target[] {
   });
 }
 
-function aftershock(center: Point, source: Source) {
+function aftershock(center: Point, source: Source, depth: number) {
   if (source === 'blast') return;
   const radius = BLAST_RADIUS[wallet.upgrades.blastRadius];
   if (radius) blast(center, radius);
+
+  const chance = CHAIN_CHANCE[wallet.upgrades.chainReaction];
+  if (depth < MAX_CHAIN_DEPTH && Math.random() < chance) {
+    window.setTimeout(() => chain(center, depth + 1), CHAIN_DELAY);
+  }
+}
+
+function chain(from: Point, depth: number) {
+  if (!active) return;
+  let nearest: { target: Target; center: Point; distance: number } | null = null;
+  for (const target of liveTargets()) {
+    const center = centerOf(target.el.getBoundingClientRect());
+    const d = distance(center, from);
+    if (d <= CHAIN_RANGE && (!nearest || d < nearest.distance)) nearest = { target, center, distance: d };
+  }
+  if (!nearest) return;
+
+  spark(from, nearest.center);
+  destroy(nearest.target.el, nearest.target.kind, 'chain', depth);
 }
 
 function blast(center: Point, radius: number) {
@@ -185,7 +209,7 @@ function blast(center: Point, radius: number) {
   }
 }
 
-function destroy(el: Element, kind: TargetKind, source: Source = 'click') {
+function destroy(el: Element, kind: TargetKind, source: Source = 'click', depth = 0) {
   const styled = el as Styled;
   const rect = el.getBoundingClientRect();
 
@@ -211,8 +235,8 @@ function destroy(el: Element, kind: TargetKind, source: Source = 'click') {
   updateHighlight();
   refreshShields();
   renderHud();
-  explode(rect, kind);
-  aftershock(centerOf(rect), source);
+  explode(rect, kind, source === 'chain' ? CHAIN_COLOR : COLORS[kind]);
+  aftershock(centerOf(rect), source, depth);
 }
 
 function mountOverlay() {
@@ -281,9 +305,8 @@ function span(className: string, text: string) {
   return el;
 }
 
-function explode(rect: DOMRect, kind: TargetKind) {
+function explode(rect: DOMRect, kind: TargetKind, color: string) {
   if (!root) return;
-  const color = COLORS[kind];
   const cx = rect.left + rect.width / 2;
   const cy = rect.top + rect.height / 2;
 
@@ -328,6 +351,22 @@ function explode(rect: DOMRect, kind: TargetKind) {
 
   floatText(`+${HP[kind]}`, cx - 14, cy, '');
   floatText(`+${coinsFor(kind)}🪙`, cx + 22, cy, 'coin');
+}
+
+// A bolt from one kill to the next, so you can follow the chain across the page.
+function spark(from: Point, to: Point) {
+  if (!root) return;
+  const bolt = document.createElement('div');
+  bolt.className = 'spark';
+  Object.assign(bolt.style, {
+    left: `${from.x}px`,
+    top: `${from.y}px`,
+    width: `${distance(from, to)}px`,
+    transform: `rotate(${Math.atan2(to.y - from.y, to.x - from.x)}rad)`,
+  });
+  root.append(bolt);
+  bolt.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 260, easing: 'ease-out' }).onfinish = () =>
+    bolt.remove();
 }
 
 // A circle that grows to the blast radius, so you can see what the blast reached.
