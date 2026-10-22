@@ -59,6 +59,11 @@ async function connect() {
     setStatus('No active tab.', 'warn');
     return;
   }
+  if (tab.url && !/^https?:/.test(tab.url)) {
+    hostEl.textContent = new URL(tab.url).protocol.replace(':', '') + ' page';
+    setStatus('Chrome doesn\'t let extensions play here. Open a normal website.', 'warn');
+    return;
+  }
 
   try {
     const ping = await send<PingResponse>({ type: 'PING' });
