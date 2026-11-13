@@ -119,6 +119,14 @@ async function purchase(item: ArmoryItem) {
   renderArmory(armory);
 }
 
+// Tabs opened before the extension was installed or reloaded don't have the content script,
+// so add it on the spot instead of asking the player to refresh the page.
+async function injectAndPing(id: number): Promise<PingResponse> {
+  const files = chrome.runtime.getManifest().content_scripts?.[0]?.js ?? [];
+  await chrome.scripting.executeScript({ target: { tabId: id }, files });
+  return send<PingResponse>({ type: 'PING' });
+}
+
 async function connect() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   tabId = tab?.id;
@@ -133,7 +141,7 @@ async function connect() {
   }
 
   try {
-    const ping = await send<PingResponse>({ type: 'PING' });
+    const ping = await send<PingResponse>({ type: 'PING' }).catch(() => injectAndPing(tabId!));
     hostEl.textContent = ping.host;
     state = await send<SiegeState>({ type: 'GET_STATE' });
     await Promise.all([scan(), renderRecord(), loadArmory()]);
